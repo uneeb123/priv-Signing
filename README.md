@@ -3,7 +3,7 @@
 ## Testing steps
 
 1. First you need to start the server to interact with the client. During server initialization phase, you would also set the password which is used for interacting with the clients. To start up the server locally, run the following command:
-`cd server && npm start "password"`
+`cd server && npm start -- -p <PASSWORD>`
 The server runs on port 8000.
 
 2. Now that your server is up and running and ready to be consumed. Initiate the client.
@@ -12,7 +12,7 @@ This is initate a React.js app on port 3000.
 
 a. The first thing you will see is simple input displaying text area for entering password. Enter the password that you set on the server side.
 
-b. Now you are ready to talk to the server. The next UI you will see where you can generate public-private key pair. Click this button to proceed. This will only execute code on the FrontEnd.
+b. Now you are ready to talk to the server while the token is valid. The next UI you will see where you can generate public-private key pair. Click this button to proceed. This will only execute code on the FrontEnd.
 
 c. In your next screen, you should be able to see the key pairs. And the post button. The post button pushes the public key to the server. Press this button to proceed.
 
@@ -31,7 +31,7 @@ Congratualations, you can now securely receive messages from anyone.
 - [x] Client should authenticate to the Server with a password
 - [x] Allow an authenticated user to store a public key of some kind on the server
 - [x] Client should be able to sign a given message with its private key
-- [x] Allow anyone to submit a signed message to the server to verify if it has been signed by the private key associated with a specified user's public key *
+- [x] Allow anyone to submit a signed message to the server to verify if it has been signed by the private key associated with a specified user's public key
 - [x] For data storage you can either keep everything in memory or, if you want to use a database, use mongo.
 - [x] Upload to a git repository named YourFirstName-2018
 

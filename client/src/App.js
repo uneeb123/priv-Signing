@@ -1,6 +1,11 @@
 import React, { Component } from 'react';
 import './App.css';
 
+const sha1 = require('sha1');
+const crypto = require('crypto');
+const ec_pem = require('ec-pem');
+const baseUrl = "http://localhost:8000/";
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -11,6 +16,8 @@ class App extends Component {
       publicKey: "",
       privateKey: "",
       ready: false,
+      token: null,
+      pem: null,
     };
   }
 
@@ -22,9 +29,30 @@ class App extends Component {
 
   _verifyPassword = (event) => {
     event.preventDefault();
-    // insert code here
-    this.setState({
-      verified: true
+    let encryptedPassword = sha1(this.state.password);
+    let body = {
+      password: encryptedPassword
+    };
+    fetch(baseUrl + "verify/", {
+        method: 'POST',
+        body:    JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json'}
+    }).then((response) => {
+      if (response.status === 200) {
+        response.json().then((json) => {
+          this.setState({
+            token: json.token,
+            verified: true
+          });
+        }).catch((e) => {
+          console.error(e);
+        });
+      }
+      else {
+        console.error("Incorrect password");
+      }
+    }).catch((e) => {
+      console.error(e);
     });
   }
 
@@ -41,17 +69,40 @@ class App extends Component {
 
   _generateKeys = (event) => {
     event.preventDefault();
-    // code here
+    const ecdh = crypto.createECDH('secp521r1');
+    ecdh.generateKeys();
+    let privKey = ecdh.getPrivateKey('hex');
+    let pubKey = ecdh.getPublicKey('hex');
+    let pem = ec_pem(ecdh, 'secp521r1');
     this.setState({
-      keysGenerated: true
+      keysGenerated: true,
+      publicKey: pubKey,
+      privateKey: privKey,
+      pem: pem,
     });
   }
 
   _submitKey = (event) => {
     event.preventDefault();
-    // insert code here
-    this.setState({
-      ready: true
+    let pubKey = this.state.pem.encodePublicKey();
+    let body = {
+      token: this.state.token,
+      key: pubKey,
+    };
+    fetch(baseUrl + "store/", {
+      method: 'POST',
+      body:    JSON.stringify(body),
+      headers: { 'Content-Type': 'application/json'}
+    }).then((response) => {
+      if (response.status === 200) {
+        this.setState({
+          ready: true
+        });
+      } else {
+        console.error(response.status);
+      }
+    }).catch((e) => {
+      console.error(e);
     });
   }
 
@@ -87,7 +138,29 @@ class App extends Component {
 
   _submitMessage = (event) => {
     event.preventDefault();
-    // insert code here
+    let msg = Buffer.from(this.state.message);
+    var sign = crypto.createSign('sha256');
+    sign.update(msg);
+    let sig = sign.sign(this.state.pem.encodePrivateKey());
+
+    let body = {
+      message: msg,
+      sig: sig,
+      key: this.state.pem.encodePublicKey(),
+    };
+    fetch(baseUrl + "talk/", {
+      method: 'POST',
+      body:    JSON.stringify(body),
+      headers: { 'Content-Type': 'application/json'}
+    }).then((response) => {
+      if (response.status === 200) {
+        console.log("Successfully received");
+      } else {
+        console.error(response.status);
+      }
+    }).catch((e) => {
+      console.error(e);
+    });
   }
 
   _submitMessageUI = () => {
