@@ -1,4 +1,4 @@
-# Bitpay assigment: Public key encryption for signed messages
+# Signing messages securely with Public keys
 
 ## Testing steps
 
